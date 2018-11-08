@@ -2,6 +2,8 @@ package im.huahang.s3websitedeployer.deployer;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.services.cloudfront.AmazonCloudFront;
+import com.amazonaws.services.cloudfront.AmazonCloudFrontClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.apache.commons.lang3.ArrayUtils;
@@ -35,6 +37,9 @@ public class Main {
             System.console().writer().print("Please enter an S3 bucket name: ");
             System.console().writer().flush();
             configItem.bucketName = System.console().readLine();
+            System.console().writer().print("Please enter an CloudFront distribution ID: ");
+            System.console().writer().flush();
+            configItem.distributionID = System.console().readLine();
             System.console().writer().print("Please enter an app key: ");
             System.console().writer().flush();
             configItem.appKey = new String(System.console().readPassword());
@@ -57,9 +62,17 @@ public class Main {
         s3ClientBuilder.setRegion(configItem.region);
         s3ClientBuilder.setCredentials(configItem.getCredentialsProvider());
         AmazonS3 s3 = s3ClientBuilder.build();
+        AmazonCloudFrontClientBuilder cloudFrontClientBuilder = AmazonCloudFrontClientBuilder.standard();
+        cloudFrontClientBuilder.setRegion(configItem.region);
+        cloudFrontClientBuilder.setCredentials(configItem.getCredentialsProvider());
+        AmazonCloudFront cloudFront = cloudFrontClientBuilder.build();
         /* upload files */
         try {
-            S3Utils.uploadDirectory(s3, configItem.bucketName, directory);
+            AWSDeployer awsDeployer = new AWSDeployer(
+                s3, configItem.bucketName, cloudFront, configItem.distributionID
+            );
+            awsDeployer.uploadDirectory(directory);
+            awsDeployer.flushCDN();
         } catch (final AmazonServiceException ase) {
             System.out.println("Caught an AmazonServiceException, which means your request made it "
                 + "to Amazon S3, but was rejected with an error response for some reason.");

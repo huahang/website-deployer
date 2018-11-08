@@ -29,6 +29,9 @@ public class S3Config {
         @SerializedName("bucket")
         public String bucketName = "";
 
+        @SerializedName("distribution_id")
+        public String distributionID = "";
+
         @SerializedName("app_key")
         public String appKey = "";
 
