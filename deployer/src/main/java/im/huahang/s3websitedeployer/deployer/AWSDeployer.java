@@ -12,6 +12,9 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -29,14 +32,14 @@ public class AWSDeployer {
 
     public void uploadDirectory(
         final File directory
-    ) {
+    ) throws UnsupportedEncodingException {
         uploadDirectory(directory, "");
     }
 
     public void uploadDirectory(
         final File directory,
         final String destination
-    ) {
+    ) throws UnsupportedEncodingException {
         String prefix = destination.endsWith("/") ? destination : destination + "/";
         prefix = StringUtils.isBlank(destination) ? "" : prefix;
         File[] files = directory.listFiles();
@@ -53,7 +56,7 @@ public class AWSDeployer {
 
     public void uploadFile(
         final File file,
-        final String objectName) {
+        final String objectName) throws UnsupportedEncodingException {
         String extension = getExtensionFromFilename(file.getName());
         String mime = ExtentionMimeTypeMap.getMimeType(extension);
         PutObjectRequest request = new PutObjectRequest(bucketName, objectName, file);
@@ -63,7 +66,7 @@ public class AWSDeployer {
         metadata.setCacheControl("60");
         request.setMetadata(metadata);
         s3.putObject(request);
-        uploadedObjects.add("/" + objectName);
+        uploadedObjects.add("/" + URLEncoder.encode(objectName, StandardCharsets.UTF_8.name()));
         System.out.println("Upload file success: " + objectName);
     }
 
