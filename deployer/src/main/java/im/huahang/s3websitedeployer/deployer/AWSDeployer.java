@@ -9,6 +9,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.google.common.net.PercentEscaper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -39,7 +40,7 @@ public class AWSDeployer {
     public void uploadDirectory(
         final File directory,
         final String destination
-    ) throws UnsupportedEncodingException {
+    ) {
         String prefix = destination.endsWith("/") ? destination : destination + "/";
         prefix = StringUtils.isBlank(destination) ? "" : prefix;
         File[] files = directory.listFiles();
@@ -56,7 +57,8 @@ public class AWSDeployer {
 
     public void uploadFile(
         final File file,
-        final String objectName) throws UnsupportedEncodingException {
+        final String objectName
+    ) {
         String extension = getExtensionFromFilename(file.getName());
         String mime = ExtentionMimeTypeMap.getMimeType(extension);
         PutObjectRequest request = new PutObjectRequest(bucketName, objectName, file);
@@ -66,14 +68,36 @@ public class AWSDeployer {
         metadata.setCacheControl("60");
         request.setMetadata(metadata);
         s3.putObject(request);
-        uploadedObjects.add("/" + URLEncoder.encode(objectName, StandardCharsets.UTF_8.name()));
+        uploadedObjects.add(objectName);
         System.out.println("Upload file success: " + objectName);
     }
 
-    public void flushCDN() {
+    public void flushCDN() throws UnsupportedEncodingException {
+        Set<String> invalidationPaths = new TreeSet<>();
+        for (final String object : uploadedObjects) {
+            PercentEscaper escaper = new PercentEscaper("/.-", true);
+            String path = "/" + escaper.escape(object);
+            System.out.println("Invalidation path: " + path);
+            invalidationPaths.add(path);
+            if (!path.endsWith("/index.html")) {
+                continue;
+            }
+            path = path.substring(0, path.length() - 10);
+            if (StringUtils.isBlank(path)) {
+                continue;
+            }
+            System.out.println("Invalidation path: " + path);
+            invalidationPaths.add(path);
+            path = path.substring(0, path.length() - 1);
+            if (StringUtils.isBlank(path)) {
+                continue;
+            }
+            System.out.println("Invalidation path: " + path);
+            invalidationPaths.add(path);
+        }
         Paths paths = new Paths();
-        paths.setItems(uploadedObjects);
-        paths.setQuantity(uploadedObjects.size());
+        paths.setItems(invalidationPaths);
+        paths.setQuantity(invalidationPaths.size());
         InvalidationBatch invalidationBatch = new InvalidationBatch();
         invalidationBatch.setCallerReference("" + System.currentTimeMillis());
         invalidationBatch.setPaths(paths);
