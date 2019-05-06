@@ -9,6 +9,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.net.PercentEscaper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,7 +34,7 @@ public class AWSDeployer {
 
     public void uploadDirectory(
         final File directory
-    ) throws UnsupportedEncodingException {
+    ) {
         uploadDirectory(directory, "");
     }
 
@@ -49,7 +50,7 @@ public class AWSDeployer {
                 uploadDirectory(f, prefix + f.getName());
                 continue;
             }
-            if (f.isFile()) {
+            if (f.isFile() && !blackList.contains(f.getName())) {
                 uploadFile(f, prefix + f.getName());
             }
         }
@@ -123,4 +124,8 @@ public class AWSDeployer {
     private String distributionID;
 
     private Set<String> uploadedObjects = new TreeSet<>();
+
+    private ImmutableSet<String> blackList = ImmutableSet.<String>builder()
+        .add(".DS_Store")
+        .build();
 }
