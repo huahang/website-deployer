@@ -73,7 +73,11 @@ public class AWSDeployer {
         System.out.println("Upload file success: " + objectName);
     }
 
-    public void flushCDN() throws UnsupportedEncodingException {
+    public void flushCDN() {
+        if (StringUtils.isBlank(distributionID)) {
+            System.out.println("No distribution_id configured, will not flush CDN.");
+            return;
+        }
         Set<String> invalidationPaths = new TreeSet<>();
         for (final String object : uploadedObjects) {
             PercentEscaper escaper = new PercentEscaper("/.-", true);
