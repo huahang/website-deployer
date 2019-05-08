@@ -14,9 +14,6 @@ import com.google.common.net.PercentEscaper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -25,17 +22,27 @@ public class AWSDeployer {
         final AmazonS3 s3,
         final String bucketName,
         final AmazonCloudFront cloudFront,
-        final String distributionID) {
+        final String distributionID,
+        final Set<String> blacklist
+    ) {
         this.s3 = s3;
         this.cloudFront = cloudFront;
         this.bucketName = bucketName;
         this.distributionID = distributionID;
+        this.blacklist.addAll(blacklist);
     }
 
     public void uploadDirectory(
+        final File s3Root,
         final File directory
     ) {
-        uploadDirectory(directory, "");
+        String rootPath = s3Root.getAbsolutePath();
+        String directoryPath = directory.getAbsolutePath();
+        String destination = directoryPath.replaceFirst(rootPath, "");
+        if (destination.startsWith("/")) {
+            destination = destination.substring(1);
+        }
+        uploadDirectory(directory, destination);
     }
 
     public void uploadDirectory(
@@ -50,7 +57,7 @@ public class AWSDeployer {
                 uploadDirectory(f, prefix + f.getName());
                 continue;
             }
-            if (f.isFile() && !blackList.contains(f.getName())) {
+            if (f.isFile() && !blacklist.contains(f.getName())) {
                 uploadFile(f, prefix + f.getName());
             }
         }
@@ -81,7 +88,10 @@ public class AWSDeployer {
         Set<String> invalidationPaths = new TreeSet<>();
         for (final String object : uploadedObjects) {
             PercentEscaper escaper = new PercentEscaper("/.-", true);
-            String path = "/" + escaper.escape(object);
+            String path = escaper.escape(object);
+            if (!path.startsWith("/")) {
+                path = "/" + path;
+            }
             System.out.println("Invalidation path: " + path);
             invalidationPaths.add(path);
             if (!path.endsWith("/index.html")) {
@@ -129,7 +139,5 @@ public class AWSDeployer {
 
     private Set<String> uploadedObjects = new TreeSet<>();
 
-    private ImmutableSet<String> blackList = ImmutableSet.<String>builder()
-        .add(".DS_Store")
-        .build();
+    private Set<String> blacklist = new TreeSet<>();
 }

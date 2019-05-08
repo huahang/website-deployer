@@ -1,0 +1,7 @@
+{
+    "bucket": "test",
+    "blacklist": [
+        "a",
+        "bcd"
+    ]
+}

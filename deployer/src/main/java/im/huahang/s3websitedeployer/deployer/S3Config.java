@@ -66,9 +66,6 @@ public class S3Config {
         }
     }
 
-    @SerializedName("active_config")
-    public String activeConfig = "";
-
     @SerializedName("config_items")
     public Map<String, ConfigItem> configItems = Collections.emptyMap();
 
