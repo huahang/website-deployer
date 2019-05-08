@@ -60,8 +60,8 @@ public class AWSDeployer {
         final File file,
         final String objectName
     ) {
-        String extension = getExtensionFromFilename(file.getName());
-        String mime = ExtentionMimeTypeMap.getMimeType(extension);
+        final String extension = StringUtils.trimToEmpty(getExtensionFromFilename(file.getName()));
+        final String mime = ExtentionMimeTypeMap.getMimeType(extension.toLowerCase());
         PutObjectRequest request = new PutObjectRequest(bucketName, objectName, file);
         request.withCannedAcl(CannedAccessControlList.PublicRead);
         ObjectMetadata metadata = new ObjectMetadata();
