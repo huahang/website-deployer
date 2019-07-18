@@ -1,0 +1,31 @@
+{
+  "config_items": {
+    "bucket_1": [
+      {
+        "vendor": "A",
+        "region": "region1",
+        "bucket": "b1",
+        "app_key": "key1",
+        "app_secret": "secret1"
+      }
+    ],
+    "bucket_2": [
+      {
+        "vendor": "AWS",
+        "region": "region2",
+        "bucket": "b2",
+        "app_key": "key2",
+        "app_secret": "secret2"
+      }
+    ],
+    "bucket_3": [
+      {
+        "vendor": "ALIYUN",
+        "region": "region3",
+        "bucket": "b3",
+        "app_key": "key3",
+        "app_secret": "secret3"
+      }
+    ]
+  }
+}

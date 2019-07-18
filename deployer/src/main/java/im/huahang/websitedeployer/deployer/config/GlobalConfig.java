@@ -1,9 +1,10 @@
-package im.huahang.s3websitedeployer.deployer;
+package im.huahang.websitedeployer.deployer.config;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.BufferedReader;
@@ -13,24 +14,43 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
 
-public class S3Config {
-    public static String CONFIG_FILE_NAME = ".s3_website_deployer_config.json";
+public class GlobalConfig {
+    public enum Vendor {
+        @SerializedName("AWS")
+        AWS(1),
+
+        @SerializedName("ALIYUN")
+        ALIYUN(2);
+
+        Vendor(int i) {
+            this.value = i;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        private int value;
+    }
+
+    public static String CONFIG_FILE_NAME = ".website_deployer_global_config.json";
 
     public static class ConfigItem {
+        @SerializedName("vendor")
+        public Vendor vendor = Vendor.AWS;
+
         @SerializedName("region")
         public String region = "";
 
         @SerializedName("bucket")
         public String bucketName = "";
-
-        @SerializedName("distribution_id")
-        public String distributionID = "";
 
         @SerializedName("app_key")
         public String appKey = "";
@@ -67,28 +87,39 @@ public class S3Config {
     }
 
     @SerializedName("config_items")
-    public Map<String, ConfigItem> configItems = Collections.emptyMap();
+    public Map<String, ConfigItem[]> configItems = Collections.emptyMap();
 
-    public static S3Config load() {
+    public static GlobalConfig load(final InputStream inputStream) {
+        Gson gson = new Gson();
+        try {
+            GlobalConfig s3Config = gson.fromJson(
+                new BufferedReader(new InputStreamReader(inputStream)),
+                GlobalConfig.class
+            );
+            return s3Config;
+        } catch (Exception exception) {
+            System.err.println("Failed to parse global config: " + exception.getMessage());
+        }
+        return null;
+    }
+
+    public static GlobalConfig load() {
         final File configFile = new File(getConfigFileName());
         if (!(configFile.exists() && configFile.isFile())) {
             return null;
         }
-        Gson gson = new Gson();
-        S3Config s3Config;
         try {
-            s3Config = gson.fromJson(
-                new BufferedReader(
-                    new InputStreamReader(
-                        new FileInputStream(configFile)
-                    )
-                ),
-                S3Config.class
-            );
+            return load(new FileInputStream(configFile));
         } catch (FileNotFoundException e) {
-            return null;
         }
-        return s3Config;
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String jsonString = gson.toJson(this);
+        return jsonString;
     }
 
     public void save() throws IOException {
@@ -97,14 +128,12 @@ public class S3Config {
         Writer writer = null;
         try {
             configFile.createNewFile();
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
             writer = new BufferedWriter(
                 new OutputStreamWriter(
                     new FileOutputStream(configFile)
                 )
             );
-            String jsonString = gson.toJson(this);
-            writer.write(jsonString);
+            writer.write(toString());
             writer.flush();
         } catch (IOException e) {
             throw e;

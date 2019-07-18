@@ -5,8 +5,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>im.huahang.s3websitedeployer</groupId>
-    <artifactId>s3-website-deployer-parent</artifactId>
+    <groupId>im.huahang.websitedeployer</groupId>
+    <artifactId>website-deployer-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
@@ -16,6 +16,10 @@
   <artifactId>deployer</artifactId>
 
   <dependencies>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-cloudfront</artifactId>
@@ -69,8 +73,8 @@
           <copyConfigurationDirectory>true</copyConfigurationDirectory>
           <programs>
             <program>
-              <mainClass>im.huahang.s3websitedeployer.deployer.Main</mainClass>
-              <id>s3_website_deployer</id>
+              <mainClass>im.huahang.websitedeployer.deployer.Main</mainClass>
+              <id>website_deployer</id>
             </program>
           </programs>
         </configuration>

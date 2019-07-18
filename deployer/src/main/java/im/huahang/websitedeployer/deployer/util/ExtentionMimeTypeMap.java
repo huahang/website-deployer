@@ -1,4 +1,4 @@
-package im.huahang.s3websitedeployer.deployer;
+package im.huahang.websitedeployer.deployer.util;
 
 import com.google.common.collect.ImmutableMap;
 
