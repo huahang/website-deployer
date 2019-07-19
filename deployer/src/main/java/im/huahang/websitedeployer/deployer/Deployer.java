@@ -14,17 +14,21 @@ public class Deployer {
         this.blacklist.addAll(blacklist);
     }
 
-    public void uploadDirectory(
+    public void upload(
         final File root,
-        final File directory
+        final File file
     ) {
         String rootPath = root.getAbsolutePath();
-        String directoryPath = directory.getAbsolutePath();
-        String destination = directoryPath.replaceFirst(rootPath, "");
+        String filePath = file.getAbsolutePath();
+        String destination = filePath.replaceFirst(rootPath, "");
         if (destination.startsWith("/")) {
             destination = destination.substring(1);
         }
-        uploadDirectory(directory, destination);
+        if (file.isDirectory()) {
+            uploadDirectory(file, destination);
+            return;
+        }
+        uploadFile(file, destination);
     }
 
     public void uploadDirectory(
@@ -53,7 +57,6 @@ public class Deployer {
             uploader.uploadFile(file, objectName);
         }
     }
-
 
     List<Uploader> uploaderList;
 

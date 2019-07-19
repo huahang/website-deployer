@@ -22,11 +22,11 @@ public class Main {
             System.exit(1);
             return;
         }
-        File directory = new File(args[0]).getAbsoluteFile();
-        if (directory.getAbsolutePath().endsWith("/.")) {
-            directory = directory.getParentFile();
+        File file = new File(args[0]).getAbsoluteFile();
+        if (file.getAbsolutePath().endsWith("/.")) {
+            file = file.getParentFile();
         }
-        if (directory == null || !directory.isDirectory()) {
+        if (file == null) {
             System.err.println("Invalid upload path: " + args[0]);
             System.exit(1);
             return;
@@ -77,7 +77,7 @@ public class Main {
         /* upload files */
         try {
             Deployer deployer = new Deployer(uploaders, rootConfig.blacklist);
-            deployer.uploadDirectory(new File(rootConfig.rootPath), directory);
+            deployer.upload(new File(rootConfig.rootPath), file);
         } catch (final AmazonServiceException ase) {
             System.out.println("Caught an AmazonServiceException, which means your request made it "
                 + "to Amazon S3, but was rejected with an error response for some reason.");
