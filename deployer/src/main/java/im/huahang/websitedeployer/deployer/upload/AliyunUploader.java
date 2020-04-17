@@ -70,6 +70,9 @@ public class AliyunUploader implements Uploader {
 
     public boolean needUpload(File file, String objectName) {
         try {
+            if (!oss.doesObjectExist(bucketName, objectName)) {
+                return true;
+            }
             ObjectMetadata metadata = oss.getObjectMetadata(bucketName, objectName);
             String b64MD5 = metadata.getContentMD5();
             if (StringUtils.isBlank(b64MD5)) {
