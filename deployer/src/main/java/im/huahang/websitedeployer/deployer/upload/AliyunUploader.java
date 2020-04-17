@@ -69,18 +69,18 @@ public class AliyunUploader implements Uploader {
     }
 
     public boolean needUpload(File file, String objectName) {
-        ObjectMetadata metadata = oss.getObjectMetadata(bucketName, objectName);
-        String b64MD5 = metadata.getContentMD5();
-        if (StringUtils.isBlank(b64MD5)) {
-            return true;
-        }
-        byte[] md5 = Base64.decodeBase64(b64MD5);
-        boolean match = false;
         try {
-            match = Arrays.equals(md5, DigestUtils.md5(new FileInputStream(file)));
-        } catch (NoSuchAlgorithmException | IOException ignored) {
+            ObjectMetadata metadata = oss.getObjectMetadata(bucketName, objectName);
+            String b64MD5 = metadata.getContentMD5();
+            if (StringUtils.isBlank(b64MD5)) {
+                return true;
+            }
+            byte[] md5 = Base64.decodeBase64(b64MD5);
+            boolean match = Arrays.equals(md5, DigestUtils.md5(new FileInputStream(file)));
+            return !match;
+        } catch (NoSuchAlgorithmException | IOException | OSSException ignored) {
         }
-        return !match;
+        return true;
     }
 
     private OSS oss;
